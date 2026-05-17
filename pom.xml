@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+      Spring Boot Admin Server — standalone module that gives operators a
+      ready-made UI for JVM internals: actuator endpoints, beans, environment,
+      threaddump, heapdump, scheduled jobs, loggers (with live level changes),
+      caches, http-trace, metrics, /env. None of that is interesting domain
+      logic to rebuild in our custom dashboard, so we just add SBA on the
+      side.
+
+      The api side adds spring-boot-admin-starter-client which makes our two
+      replicas register here automatically. SBA polls their actuator endpoints
+      every 10 s and renders.
+    -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.5</version>
+    </parent>
+
+    <groupId>com.airwatch</groupId>
+    <artifactId>airwatch-sba</artifactId>
+    <version>1.0.0</version>
+    <name>AirWatch Spring Boot Admin</name>
+    <description>JVM/Actuator dashboard for the AirWatch api replicas.</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring-boot-admin.version>3.4.5</spring-boot-admin.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!--
+          Single dep brings in the SBA Server UI + the controller layer
+          + SockJS for the streaming notifications. Pulls Thymeleaf as a
+          transitive — that's fine, we don't have our own templates here.
+        -->
+        <dependency>
+            <groupId>de.codecentric</groupId>
+            <artifactId>spring-boot-admin-starter-server</artifactId>
+            <version>${spring-boot-admin.version}</version>
+        </dependency>
+        <!--
+          Optional: reactive client lib for live event stream from the
+          managed instances. Lets the SBA UI receive change events
+          without polling.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

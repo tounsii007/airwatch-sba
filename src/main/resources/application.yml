@@ -1,0 +1,44 @@
+# Spring Boot Admin Server configuration.
+spring:
+  application:
+    name: airwatch-sba
+  # Disable Thymeleaf cache in dev so the operator can hot-reload UI
+  # tweaks without restart. SBA's bundled UI is fingerprinted so this
+  # has zero perf cost.
+  thymeleaf:
+    cache: false
+  # Tailor the SockJS path so it doesn't collide with our existing
+  # /ws/* routes if SBA ever ends up reverse-proxied through the same
+  # nginx listener.
+  boot:
+    admin:
+      ui:
+        title: AirWatch · JVM Admin
+        brand: '<strong>AIRWATCH</strong> &nbsp;JVM Admin'
+
+server:
+  port: 8080
+  # SBA renders behind nginx at /admin/sba — set the context-path so
+  # all SBA-emitted relative URLs include the prefix and the static
+  # assets resolve correctly.
+  servlet:
+    context-path: /admin/sba
+  # Honour X-Forwarded-* headers from nginx so SBA generates absolute
+  # URLs against the externally-visible host (`localhost:13099`) instead
+  # of the upstream Docker hostname (`sba:8080`). Without this, the UI's
+  # <base href> points at the internal hostname and every asset 404s
+  # in the browser with ERR_NAME_NOT_RESOLVED. The matching nginx
+  # block must set `proxy_set_header Host $http_host` etc.
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # SBA itself doesn't need most actuator endpoints exposed — only
+        # health (so it can self-monitor). Keep the surface minimal.
+        include: health,info
+
+logging:
+  level:
+    de.codecentric.boot.admin: INFO
