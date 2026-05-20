@@ -3,7 +3,7 @@
 # Stage 1 builds the fat-jar; stage 2 runs it on a minimal JRE.
 # ────────────────────────────────────────────────────────────────
 
-FROM maven:3.9-eclipse-temurin-21 AS build
+FROM maven:3-eclipse-temurin-26 AS build
 WORKDIR /app
 
 # Maven dependency cache layer — invalidates only when the pom changes,
