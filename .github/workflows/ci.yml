@@ -30,7 +30,10 @@ jobs:
           cache: maven
 
       - name: Maven verify
-        run: ./mvnw -B -ntp verify
+        # No mvnw wrapper checked in — use the runner's pre-installed maven
+        # (ubuntu-latest ships maven 3.x in the image). Switch to ./mvnw
+        # once we commit the wrapper via `mvn -N wrapper:wrapper`.
+        run: mvn -B -ntp verify
 
       - name: Upload surefire reports on failure
         if: failure()
