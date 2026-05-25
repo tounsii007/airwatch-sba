@@ -61,6 +61,11 @@ jobs:
         with:
           context: .
           push: false
+          # load: true loads the built image into the local Docker daemon
+          # so the smoke-test step can run it. Without this, push:false
+          # leaves the image in the BuildKit cache only, and `docker run`
+          # tries to pull it from Docker Hub → permission denied.
+          load: true
           tags: airwatch-sba:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
