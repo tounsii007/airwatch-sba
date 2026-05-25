@@ -1,8 +1,9 @@
 package com.airwatch.sba;
 
-import de.codecentric.boot.admin.server.config.EnableAdminServer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import de.codecentric.boot.admin.server.config.EnableAdminServer;
 
 /**
  * Spring Boot Admin Server entry point.
