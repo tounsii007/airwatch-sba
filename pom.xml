@@ -113,14 +113,13 @@
                         <trimTrailingWhitespace/>
                         <endWithNewline/>
                     </java>
-                    <pom>
-                        <includes>
-                            <include>pom.xml</include>
-                        </includes>
-                        <sortPom>
-                            <expandEmptyElements>false</expandEmptyElements>
-                        </sortPom>
-                    </pom>
+                    <!--
+                      pom.xml itself is hand-formatted with 4-space indent and
+                      multi-line <project> attributes for readability. sortPom's
+                      defaults (2-space, attributes on one line) would fight that
+                      style on every commit — not worth the noise. Re-enable
+                      after we agree on a single style across the AirWatch repos.
+                    -->
                 </configuration>
                 <executions>
                     <execution>
