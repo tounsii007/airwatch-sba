@@ -30,4 +30,11 @@ COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]
+# Default JVM flags — operators can extend via JAVA_OPTS in compose.
+#   UseContainerSupport + MaxRAMPercentage=75  — sized to the cgroup heap budget
+#   ExitOnOutOfMemoryError                      — escalate OOM to a container
+#                                                 exit so compose's restart
+#                                                 policy cycles the JVM instead
+#                                                 of leaving it degraded.
+ENV JAVA_OPTS_DEFAULT="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS_DEFAULT $JAVA_OPTS -jar app.jar"]
