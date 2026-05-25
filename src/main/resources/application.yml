@@ -23,6 +23,11 @@ server:
   # assets resolve correctly.
   servlet:
     context-path: /admin/sba
+  # Graceful shutdown — let in-flight registrations and the SockJS
+  # heartbeat-event flushes complete before the JVM exits on SIGTERM.
+  # Otherwise rolling restarts cause every connected dashboard browser
+  # to flash an "instance disconnected" toast for ~1s.
+  shutdown: graceful
   # Honour X-Forwarded-* headers from nginx so SBA generates absolute
   # URLs against the externally-visible host (`localhost:13099`) instead
   # of the upstream Docker hostname (`sba:8080`). Without this, the UI's
