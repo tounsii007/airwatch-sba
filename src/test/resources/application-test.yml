@@ -1,0 +1,11 @@
+# Test profile — uses an ephemeral port so multiple test runs / CI agents
+# don't collide on 8080. Everything else inherits from the main profile.
+server:
+  port: 0
+
+# Suppress noisy SBA + Netty logs during test runs.
+logging:
+  level:
+    root: WARN
+    de.codecentric.boot.admin: WARN
+    reactor.netty: WARN

@@ -59,6 +59,17 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
+
+        <!--
+          Test scope — JUnit 5, AssertJ, Mockito, MockMvc, Spring Test.
+          We only ship a smoke test that asserts the Spring context loads
+          and the SBA endpoints are wired; no business logic to unit-test.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
