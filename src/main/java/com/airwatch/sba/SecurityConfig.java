@@ -21,13 +21,13 @@ import org.springframework.security.web.servlet.util.matcher.PathPatternRequestM
  *
  * <p>nginx at the edge already terminates auth for the public surface, but we layer HTTP BASIC on
  * top so a compromised internal network or a misconfigured proxy can't expose the actuator
- * dashboard. Credentials are sourced from environment variables and the password is a BCrypt hash
- * — no plaintext at rest.
+ * dashboard. Credentials are sourced from environment variables and the password is a BCrypt hash —
+ * no plaintext at rest.
  *
  * <p>CSRF is enabled by default but disabled for the {@code POST /instances} endpoints because SBA
  * clients self-register there without a session. The CSRF exemption does <em>not</em> bypass
- * authentication — {@code anyRequest().authenticated()} below still gates POST/DELETE on
- * {@code /instances/*} behind BASIC auth.
+ * authentication — {@code anyRequest().authenticated()} below still gates POST/DELETE on {@code
+ * /instances/*} behind BASIC auth.
  */
 @Configuration
 @EnableWebSecurity
@@ -50,8 +50,7 @@ public class SecurityConfig {
                                         .authenticated())
                 .httpBasic(basic -> {})
                 .sessionManagement(
-                        session ->
-                                session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .csrf(
                         csrf ->
                                 csrf.ignoringRequestMatchers(
@@ -66,9 +65,9 @@ public class SecurityConfig {
                                                 csp ->
                                                         csp.policyDirectives(
                                                                 "default-src 'self'; style-src"
-                                                                    + " 'self' 'unsafe-inline';"
-                                                                    + " img-src 'self' data:;"
-                                                                    + " script-src 'self'"))
+                                                                        + " 'self' 'unsafe-inline';"
+                                                                        + " img-src 'self' data:;"
+                                                                        + " script-src 'self'"))
                                         .referrerPolicy(
                                                 ref ->
                                                         ref.policy(
@@ -87,10 +86,11 @@ public class SecurityConfig {
         if (passwordHash == null || passwordHash.isBlank()) {
             throw new IllegalStateException(
                     "spring.boot.admin.user.password (env SBA_USER_PASSWORD_HASH) must be set to a"
-                        + " BCrypt hash. Generate with: htpasswd -bnBC 10 \"\" \"MyPassword\" | tr"
-                        + " -d ':\\n'");
+                            + " BCrypt hash. Generate with: htpasswd -bnBC 10 \"\" \"MyPassword\" | tr"
+                            + " -d ':\\n'");
         }
-        UserDetails user = User.withUsername(username).password(passwordHash).roles("ADMIN").build();
+        UserDetails user =
+                User.withUsername(username).password(passwordHash).roles("ADMIN").build();
         InMemoryUserDetailsManager mgr = new InMemoryUserDetailsManager(user);
         // The provided password is already a BCrypt hash; PasswordEncoder is wired as a bean so
         // the DaoAuthenticationProvider picks it up automatically.
