@@ -3,7 +3,7 @@
 # Stage 1 builds the fat-jar; stage 2 runs it on a minimal JRE.
 # ────────────────────────────────────────────────────────────────
 
-FROM maven:3-eclipse-temurin-26 AS build
+FROM maven:3-eclipse-temurin-21 AS build
 WORKDIR /app
 
 # Maven dependency cache layer — invalidates only when the pom changes,
@@ -19,14 +19,16 @@ RUN mvn -B -DskipTests package
 # ────────────────────────────────────────────────────────────────
 # Runtime image
 # ────────────────────────────────────────────────────────────────
-FROM eclipse-temurin:25-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Non-root user — nothing in this container needs root.
 RUN addgroup -S sba && adduser -S sba -G sba
 USER sba
 
-COPY --from=build /app/target/*.jar app.jar
+# Explicit name avoids the *.jar.original ambiguity from spring-boot-maven-plugin
+# (the repackage goal produces both airwatch-sba-1.0.0.jar and *.jar.original).
+COPY --from=build /app/target/airwatch-sba-1.0.0.jar app.jar
 
 EXPOSE 8080
 
@@ -37,4 +39,7 @@ EXPOSE 8080
 #                                                 policy cycles the JVM instead
 #                                                 of leaving it degraded.
 ENV JAVA_OPTS_DEFAULT="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"
+# DisableAttachMechanism blocks jcmd/jmap/jstack heap-dump from a co-located shell.
+# Egd flag avoids the JDK's slow /dev/random fallback.
+ENV JAVA_TOOL_OPTIONS="-XX:+DisableAttachMechanism -Djava.security.egd=file:/dev/urandom"
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS_DEFAULT $JAVA_OPTS -jar app.jar"]
