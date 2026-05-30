@@ -2,6 +2,10 @@
 spring:
   application:
     name: airwatch-sba
+  # 30s cap on graceful shutdown phases — SBA can keep clients waiting on
+  # SSE streams; this bounds the SIGTERM-to-SIGKILL window.
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
   # Thymeleaf template cache enabled in all environments — SBA's bundled UI
   # ships pre-compiled and fingerprinted, so caching has zero downside and
   # avoids per-request template parsing.

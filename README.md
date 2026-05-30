@@ -3,8 +3,8 @@
 > JVM/Actuator-Dashboard für die AirWatch-API-Replikas. Liefert eine fertige UI für Health, Beans, Environment, Threaddump, Heapdump, Scheduled Jobs, Loggers (mit Live-Level-Änderung), Caches, HTTP-Trace, Metrics und `/env` — ohne dass wir das in unserem eigenen Dashboard nachbauen.
 
 [![Java](https://img.shields.io/badge/Java-21-007396?logo=openjdk)](https://openjdk.org/projects/jdk/21/)
-[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-6DB33F?logo=springboot)](https://spring.io/projects/spring-boot)
-[![Spring Boot Admin](https://img.shields.io/badge/SBA-3.4-6DB33F)](https://docs.spring-boot-admin.com)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.5-6DB33F?logo=springboot)](https://spring.io/projects/spring-boot)
+[![Spring Boot Admin](https://img.shields.io/badge/SBA-3.4.5-6DB33F)](https://docs.spring-boot-admin.com)
 
 ---
 
@@ -18,7 +18,10 @@
 ## Was er bewusst NICHT macht
 
 - **Keine Persistenz** — Registry ist in-memory. Nach einem SBA-Restart rebuilden die Registrierungen sich innerhalb von ~30 s automatisch, weil die API-Clients regelmäßig re-registrieren.
-- **Keine Auth in der App selbst** — die Route ist hinter dem Admin-NGINX-Port (loopback-only) gekapselt; die `/admin/sba/**`-Route auf NGINX wird vom `AdminAuthFilter` am Edge abgesichert.
+
+## Sicherheitsmodell
+
+BASIC authentication is enforced via Spring Security (siehe `SecurityConfig.java`). The NGINX edge filter (`AdminAuthFilter`) provides defense-in-depth. Beide Schichten zusammen: NGINX-Edge gated auf `/admin/sba/**`, Spring Security auf alle Pfade außer `actuator/health` und `actuator/info`.
 
 ## Tech-Stack
 
@@ -40,7 +43,7 @@
 |---|---|---|
 | `server.port` | `8080` | HTTP-Port |
 | `server.servlet.context-path` | `/admin/sba` | SBA hängt hinter NGINX bei `/admin/sba` |
-| `server.forward-headers-strategy` | `framework` | Honoriert `X-Forwarded-*` Header von NGINX |
+| `server.forward-headers-strategy` | `NATIVE` | Honoriert `X-Forwarded-*` Header von NGINX (mit internal-proxies allowlist) |
 | `spring.boot.admin.ui.title` | `AirWatch · JVM Admin` | Browser-Tab-Titel |
 | `spring.boot.admin.ui.brand` | `<strong>AIRWATCH</strong>…` | Brand im UI-Header |
 | `management.endpoints.web.exposure.include` | `health,info` | SBA selbst legt nur ein Minimum offen |
@@ -102,7 +105,7 @@ location /admin/sba/ {
 }
 ```
 
-Die `forward-headers-strategy: framework` in `application.yml` sorgt dafür, dass SBA die Header respektiert.
+Die `forward-headers-strategy: NATIVE` in `application.yml` sorgt dafür, dass SBA die Header respektiert (nur von der internal-proxies allowlist).
 
 ### Wenn keine Instanzen erscheinen
 
@@ -113,7 +116,7 @@ Die `forward-headers-strategy: framework` in `application.yml` sorgt dafür, das
 ## Sicherheit
 
 Siehe [SECURITY.md](SECURITY.md).
-Die SBA-UI selbst hat keine Auth — Schutz erfolgt am NGINX-Edge via `AdminAuthFilter`.
+BASIC authentication is enforced via Spring Security (see `SecurityConfig.java`). The NGINX edge filter (`AdminAuthFilter`) provides defense-in-depth.
 
 ## Verwandte Repos
 

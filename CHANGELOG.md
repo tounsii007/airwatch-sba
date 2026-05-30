@@ -9,9 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Comprehensive README documenting what the service does (JVM/actuator UI for API replicas)
-  and what it intentionally doesn't do (no persistence, no in-app auth)
+  and what it intentionally doesn't do (no persistence)
 - `CHANGELOG.md` (Keep-a-Changelog format)
 - `CONTRIBUTING.md` with dev workflow and PR checklist
+
+### Security
+- Spring Security BASIC auth required for all paths except actuator health/info
+- JAVA_TOOL_OPTIONS hardening (DisableAttachMechanism)
+- Discovery client registration disabled
+- Forward-headers strategy: NATIVE with internal-proxies allowlist
+- server.error.* hardened (no stacktrace / message leak)
+- Dependency: Spring Boot 3.5.5, SBA 3.4.5 (aligned with README)
+- Java version enforced to [21,25)
+- Dockerfile: pinned Temurin 21
 
 ## [1.0.0]
 

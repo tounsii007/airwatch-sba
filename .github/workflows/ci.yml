@@ -76,7 +76,6 @@ jobs:
           for i in $(seq 1 30); do
             if curl -fsS http://localhost:18080/admin/sba/actuator/health > /dev/null 2>&1; then
               echo "SBA is up after ${i}s"
-              docker stop sba-smoke
               exit 0
             fi
             sleep 1
@@ -85,3 +84,17 @@ jobs:
           docker logs sba-smoke
           docker stop sba-smoke
           exit 1
+
+      - name: Smoke-test auth gate
+        run: |
+          set -e
+          # 401 expected without credentials
+          code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:18080/admin/sba/applications)
+          if [ "$code" != "401" ]; then
+            echo "::error::Expected 401 from /admin/sba/applications without auth; got $code"
+            docker logs sba-smoke
+            docker stop sba-smoke
+            exit 1
+          fi
+          echo "✓ /admin/sba/applications returns 401 without credentials"
+          docker stop sba-smoke

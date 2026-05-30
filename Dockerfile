@@ -30,6 +30,8 @@ USER sba
 # (the repackage goal produces both airwatch-sba-1.0.0.jar and *.jar.original).
 COPY --from=build /app/target/airwatch-sba-1.0.0.jar app.jar
 
+# SBA UI + actuator. Compose binds this to 127.0.0.1:13099 so the dashboard
+# is loopback-only; do NOT publish to 0.0.0.0 in production stacks.
 EXPOSE 8080
 
 # Default JVM flags — operators can extend via JAVA_OPTS in compose.
