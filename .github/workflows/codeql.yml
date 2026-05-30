@@ -26,11 +26,20 @@ jobs:
       matrix:
         language: [ "java-kotlin"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
+      - uses: actions/checkout@v6
+      # CodeQL's Java autobuilder compiles the project with whatever JDK is
+      # on PATH; the ubuntu-latest default (17) is older than this project's
+      # JDK 21, so autobuild would fail. Pin the same Temurin 21 the ci.yml
+      # build uses so the analysis build succeeds.
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+      - uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
-      - uses: github/codeql-action/autobuild@v3
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/autobuild@v4
+      - uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{ matrix.language }}"
