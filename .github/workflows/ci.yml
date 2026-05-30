@@ -72,7 +72,17 @@ jobs:
 
       - name: Smoke-test image starts and exposes SBA UI
         run: |
-          docker run -d --rm --name sba-smoke -p 18080:8080 airwatch-sba:ci
+          # Wave-1 SecurityConfig refuses to boot without
+          # SBA_USER_PASSWORD_HASH (fail-closed by design). Provide a
+          # CI-only BCrypt hash so the container can come up and we can
+          # exercise the auth gate in the next step. Hash below is the
+          # BCrypt of "ci-test" — not a real credential. '$' is doubled
+          # in shell-quoting to keep docker-compose-style readers happy,
+          # but here `docker run -e` takes the raw string.
+          docker run -d --rm --name sba-smoke \
+            -e SBA_USER_NAME=ci-test \
+            -e 'SBA_USER_PASSWORD_HASH=$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy' \
+            -p 18080:8080 airwatch-sba:ci
           for i in $(seq 1 30); do
             if curl -fsS http://localhost:18080/admin/sba/actuator/health > /dev/null 2>&1; then
               echo "SBA is up after ${i}s"
