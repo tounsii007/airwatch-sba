@@ -3,7 +3,11 @@
 # Stage 1 builds the fat-jar; stage 2 runs it on a minimal JRE.
 # ────────────────────────────────────────────────────────────────
 
-FROM maven:3-eclipse-temurin-26 AS build
+# Build JDK pinned to 21 (LTS). The pom enforcer requires Java [21,25)
+# (RequireJavaVersion), so temurin-25/26 break `mvn package`. Bump only
+# within that range; the `maven` image is ignored in dependabot.yml so
+# this is not auto-bumped out of range again (see PR #16 regression).
+FROM maven:3-eclipse-temurin-21 AS build
 WORKDIR /app
 
 # Maven dependency cache layer — invalidates only when the pom changes,
@@ -19,7 +23,9 @@ RUN mvn -B -DskipTests package
 # ────────────────────────────────────────────────────────────────
 # Runtime image
 # ────────────────────────────────────────────────────────────────
-FROM eclipse-temurin:25-jre-alpine
+# Runtime JRE pinned to the 21 LTS line (matches the build JDK and the
+# Java 21 compile target). Major bumps (25/26) are blocked in dependabot.yml.
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Non-root user — nothing in this container needs root.
