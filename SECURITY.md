@@ -19,20 +19,28 @@ A useful report includes:
 
 ## Threat model — what this service does (and doesn't) protect
 
-The SBA Server has **no authentication of its own** — protection is delegated
-to the edge:
+As of **Wave 1**, the SBA Server now ships with **its own Spring Security
+HTTP BASIC layer** (see `SecurityConfig.java`) in addition to the nginx edge
+gate. Defense-in-depth means a compromised internal network, a misconfigured
+proxy, or a bypassed `AdminAuthFilter` no longer hands out the actuator
+dashboard for free. Credentials come from `SBA_USER_NAME` /
+`SBA_USER_PASSWORD_HASH` (BCrypt) and the app refuses to start if the hash is
+blank.
+
+Protection layers, from outside in:
 
 - The `/admin/sba/**` route on the upstream nginx is gated by `AdminAuthFilter`
-  in `airwatch-api`. Anyone bypassing nginx and reaching the container
-  directly gets full admin access.
+  in `airwatch-api`.
 - The host port is bound to `127.0.0.1` in the compose stack — the container
   is not directly reachable from LAN/WAN.
+- **The SBA Server itself enforces HTTP BASIC** on every request except
+  `/actuator/health` and `/actuator/info` (`SecurityConfig.java`).
 
 What this means for vulnerability classification:
 
 | Class | In-scope? | Notes |
 |---|---|---|
-| Auth bypass at the SBA layer | ❌ Out-of-scope by design | Auth is at the nginx edge — file against `airwatch-api`'s `AdminAuthFilter` |
+| Auth bypass at the SBA layer | ✅ In-scope | Wave 1 added Spring Security BASIC auth — bypass of `SecurityConfig` is a finding here (was previously deferred to `airwatch-api`'s `AdminAuthFilter`) |
 | XSS in the SBA UI | ✅ In-scope | The SBA-rendered UI is the attack surface for an authenticated operator |
 | RCE via SBA actuator proxying | ✅ Critical | SBA forwards to actuator endpoints — a poisoned `info`/`env` payload could escape if not sanitized |
 | Container escape from the runtime image | ✅ In-scope | The image runs as non-root user `sba`; any escape is a finding |
@@ -60,8 +68,9 @@ Before deploying this service to a non-local environment, verify:
 
 - [ ] nginx in front with `AdminAuthFilter` is reachable; direct container
       port (`8080`) is **not** exposed to LAN/WAN
-- [ ] `forward-headers-strategy: framework` stays in `application.yml`
-      (so SBA generates URLs against the external host, not internal Docker DNS)
+- [ ] `forward-headers-strategy: NATIVE` stays in `application.yml`
+      (so SBA generates URLs against the external host, not internal Docker DNS,
+      via Tomcat's RemoteIpValve with the loopback + RFC1918 172.16/12 allowlist)
 - [ ] The base image tag in the Dockerfile (`eclipse-temurin:21-jre-alpine`)
       is pinned to a digest in production deploys
 - [ ] Container runs as non-root (the Dockerfile sets `USER sba`)

@@ -2,11 +2,15 @@
 spring:
   application:
     name: airwatch-sba
-  # Disable Thymeleaf cache in dev so the operator can hot-reload UI
-  # tweaks without restart. SBA's bundled UI is fingerprinted so this
-  # has zero perf cost.
+  # 30s cap on graceful shutdown phases — SBA can keep clients waiting on
+  # SSE streams; this bounds the SIGTERM-to-SIGKILL window.
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  # Thymeleaf template cache enabled in all environments — SBA's bundled UI
+  # ships pre-compiled and fingerprinted, so caching has zero downside and
+  # avoids per-request template parsing.
   thymeleaf:
-    cache: false
+    cache: true
   # Tailor the SockJS path so it doesn't collide with our existing
   # /ws/* routes if SBA ever ends up reverse-proxied through the same
   # nginx listener.
@@ -15,6 +19,21 @@ spring:
       ui:
         title: AirWatch · JVM Admin
         brand: '<strong>AIRWATCH</strong> &nbsp;JVM Admin'
+      # Defense-in-depth BASIC auth credentials. The password value MUST be a
+      # BCrypt hash — generate with:
+      #   htpasswd -bnBC 10 "" "MyPassword" | tr -d ':\n'
+      # then export as SBA_USER_PASSWORD_HASH. App refuses to start if blank.
+      user:
+        name: ${SBA_USER_NAME:admin}
+        password: ${SBA_USER_PASSWORD_HASH:}
+      monitor:
+        status-interval: 10s
+        status-lifetime: 30s
+      # Without an explicit allowlist any container in the compose
+      # network could register a fake client. Keep this in sync with
+      # actual api replica hostnames.
+      discovery:
+        enabled: false
 
 server:
   port: 8080
@@ -30,11 +49,20 @@ server:
   shutdown: graceful
   # Honour X-Forwarded-* headers from nginx so SBA generates absolute
   # URLs against the externally-visible host (`localhost:13099`) instead
-  # of the upstream Docker hostname (`sba:8080`). Without this, the UI's
-  # <base href> points at the internal hostname and every asset 404s
-  # in the browser with ERR_NAME_NOT_RESOLVED. The matching nginx
-  # block must set `proxy_set_header Host $http_host` etc.
-  forward-headers-strategy: framework
+  # of the upstream Docker hostname (`sba:8080`). NATIVE delegates to
+  # Tomcat's RemoteIpValve, which only trusts X-Forwarded-* from the
+  # internal-proxies allowlist below (loopback + RFC1918 172.16/12).
+  forward-headers-strategy: NATIVE
+  tomcat:
+    remoteip:
+      internal-proxies: '127\.0\.0\.1|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}'
+  # Error response hardening — never leak stack traces, exception types,
+  # binding details, or framework messages to clients.
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-binding-errors: never
+    include-exception: false
 
 management:
   endpoints:
@@ -43,6 +71,10 @@ management:
         # SBA itself doesn't need most actuator endpoints exposed — only
         # health (so it can self-monitor). Keep the surface minimal.
         include: health,info
+  endpoint:
+    health:
+      # Don't reveal component/DB/disk details to anonymous health probes.
+      show-details: never
 
 logging:
   level:

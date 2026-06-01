@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.6</version>
+        <version>3.5.5</version>
     </parent>
 
     <groupId>com.airwatch</groupId>
@@ -33,7 +33,7 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spring-boot-admin.version>4.0.4</spring-boot-admin.version>
+        <spring-boot-admin.version>3.4.5</spring-boot-admin.version>
 
         <!-- Plugin version pins — keep build reproducible. Bumps land via Dependabot PRs. -->
         <spotless-maven-plugin.version>2.44.5</spotless-maven-plugin.version>
@@ -45,6 +45,10 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
         <!--
           Single dep brings in the SBA Server UI + the controller layer
@@ -148,7 +152,7 @@
                         <configuration>
                             <rules>
                                 <requireJavaVersion>
-                                    <version>[21,)</version>
+                                    <version>[21,25)</version>
                                 </requireJavaVersion>
                                 <requireMavenVersion>
                                     <version>[3.9,)</version>

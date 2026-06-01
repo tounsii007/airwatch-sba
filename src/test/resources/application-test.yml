@@ -3,6 +3,17 @@
 server:
   port: 0
 
+# Test-only credentials so the security InMemoryUserDetailsManager bean can
+# wire up without requiring SBA_USER_PASSWORD_HASH to be set in the env.
+# The hash below is a BCrypt of the literal string "test-password" (cost=10).
+# Not a real credential — never reused outside this profile.
+spring:
+  boot:
+    admin:
+      user:
+        name: test
+        password: $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy
+
 # Suppress noisy SBA + Netty logs during test runs.
 logging:
   level:
