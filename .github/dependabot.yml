@@ -19,6 +19,19 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    ignore:
+      # This service is pinned to Java 21 LTS (pom enforcer RequireJavaVersion
+      # [21,25), compiler.release 21). The docker job only runs on push-to-main,
+      # so an out-of-range base-image bump passes PR CI and breaks main — which
+      # is exactly what #16 (build image -> temurin-26) did.
+      # - maven (build image): tag is "3-eclipse-temurin-NN"; Dependabot does
+      #   not treat the JDK suffix as semver-major, so block it entirely and
+      #   bump the build JDK manually within range.
+      - dependency-name: "maven"
+      # - eclipse-temurin (runtime JRE): block major jumps off the 21 line
+      #   (21 -> 25/26) but keep patch updates (21.0.x security fixes) flowing.
+      - dependency-name: "eclipse-temurin"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
