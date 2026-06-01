@@ -33,7 +33,7 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spring-boot-admin.version>3.4.5</spring-boot-admin.version>
+        <spring-boot-admin.version>4.0.4</spring-boot-admin.version>
 
         <!-- Plugin version pins — keep build reproducible. Bumps land via Dependabot PRs. -->
         <spotless-maven-plugin.version>3.6.0</spotless-maven-plugin.version>
