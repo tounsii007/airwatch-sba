@@ -19,7 +19,7 @@ RUN mvn -B -DskipTests package
 # ────────────────────────────────────────────────────────────────
 # Runtime image
 # ────────────────────────────────────────────────────────────────
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 
 # Non-root user — nothing in this container needs root.
